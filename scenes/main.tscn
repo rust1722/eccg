@@ -6,6 +6,7 @@
 script = ExtResource("1_main")
 
 [node name="Title" type="Label" parent="."]
+custom_minimum_size = Vector2(1000, 0)
 offset_left = 40.0
 offset_top = 40.0
 offset_right = 1112.0
@@ -15,6 +16,7 @@ text = "Hello from Arena + GitHub + Godot!"
 autowrap_mode = 2
 
 [node name="Subtitle" type="Label" parent="."]
+custom_minimum_size = Vector2(1000, 0)
 offset_left = 40.0
 offset_top = 140.0
 offset_right = 1112.0
@@ -25,6 +27,7 @@ text = "If you see this — sync works."
 autowrap_mode = 2
 
 [node name="Hint" type="Label" parent="."]
+custom_minimum_size = Vector2(1000, 0)
 offset_left = 40.0
 offset_top = 220.0
 offset_right = 1112.0
