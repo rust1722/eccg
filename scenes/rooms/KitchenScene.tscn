@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/PlaceholderRoom.gd" id="1"]
+
+[node name="KitchenScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+room_id = "kitchen"
+room_title = "Кухня"
+room_subtitle = "Разделочный стол, котёл и книга кулинарных рецептов. Здесь еда и напитки готовятся из ингредиентов."
+center_object_text = "РАЗДЕЛОЧНЫЙ СТОЛ\n\n(здесь будет крафт еды и напитков)"
+background_color = Color(0.13, 0.09, 0.05, 1)

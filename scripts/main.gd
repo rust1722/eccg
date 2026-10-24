@@ -17,14 +17,45 @@ var test_cards: Array[CardData] = [
 	preload("res://resources/cards/test_set/card_quest_tower.tres"),
 ]
 
+## Рука менялась, пока Архив был открыт: веер под окном обновим
+## анимацией при закрытии, чтобы игрок видел смену (DESIGN.md §6.5.1).
+var _hand_dirty_under_archive: bool = false
+
 @onready var _room_slot: Control = $RoomSlot
 @onready var _hand_ui: HandUI = $PersistentUI/HandUI
+@onready var _deck_button: Button = $PersistentUI/DeckButton
+@onready var _archive_overlay: ArchiveOverlay = $PersistentUI/ArchiveOverlay
 
 
 func _ready() -> void:
-	print("=== eccg: STAGE 2 - tavern shell ===")
+	print("=== eccg: STAGE 3 - archive overlay + all rooms ===")
 	_seed_test_cards()
+	_deck_button.pressed.connect(_on_deck_button_pressed)
+	_archive_overlay.closed.connect(_on_archive_closed)
+	InventoryManager.room_hand_changed.connect(_on_room_hand_changed)
 	RoomManager.register_shell(_room_slot, _hand_ui)
+
+
+func _on_deck_button_pressed() -> void:
+	if RoomManager.is_transitioning() or RoomManager.current_room_id == "":
+		return
+	_hand_dirty_under_archive = false
+	_archive_overlay.open_for_room(RoomManager.current_room_id)
+
+
+func _on_room_hand_changed(room_id: String) -> void:
+	if _archive_overlay.visible and room_id == RoomManager.current_room_id:
+		_hand_dirty_under_archive = true
+
+
+func _on_archive_closed() -> void:
+	if not _hand_dirty_under_archive:
+		return
+	_hand_dirty_under_archive = false
+	# Веер под окном уже старый: уводим его вниз и поднимаем новый,
+	# чтобы смена руки читалась, а не подменялась втихую.
+	await _hand_ui.animate_hide()
+	await _hand_ui.show_room_hand(RoomManager.current_room_id)
 
 
 ## Стартовый набор: карты в Архив, а из него — по рукам комнат (A+).

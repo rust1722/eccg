@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/PlaceholderRoom.gd" id="1"]
+
+[node name="CabinetScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+room_id = "cabinet"
+room_title = "Кабинет"
+room_subtitle = "Карта мира во всю стену: точки заданий, сложность, награды и кнопка «В БОЙ»."
+center_object_text = "КАРТА МИРА\n\n(здесь будут точки заданий)"
+background_color = Color(0.05, 0.08, 0.12, 1)

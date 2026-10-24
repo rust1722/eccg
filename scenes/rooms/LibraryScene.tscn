@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/PlaceholderRoom.gd" id="1"]
+
+[node name="LibraryScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+room_id = "library"
+room_title = "Библиотека"
+room_subtitle = "Магический круг с кристаллами и фолиант заклинаний. Здесь создаются свитки и магия."
+center_object_text = "МАГИЧЕСКИЙ КРУГ\n\n(здесь будет крафт заклинаний)"
+background_color = Color(0.08, 0.07, 0.14, 1)

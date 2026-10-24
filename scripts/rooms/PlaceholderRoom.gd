@@ -1,5 +1,5 @@
 extends Control
-## Комната-заглушка этапа 2: цветной фон, название, описание и центральный
+## Комната-заглушка: цветной фон, название, описание и центральный
 ## "главный объект" комнаты. Настоящий арт и механики придут позже,
 ## а навигация, веер и указатель работают уже на этих заглушках.
 ##
@@ -71,7 +71,7 @@ func _ready() -> void:
 	center_panel.add_child(center_label)
 
 	var note_label := Label.new()
-	note_label.text = "Заглушка этапа 2: здесь будут фон, объекты и механики комнаты."
+	note_label.text = "Заглушка комнаты: здесь будут фон, объекты и механики комнаты."
 	note_label.position = Vector2(38, 462)
 	note_label.add_theme_font_size_override("font_size", 13)
 	note_label.add_theme_color_override("font_color", Color(0.6, 0.63, 0.75, 0.8))

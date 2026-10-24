@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/PlaceholderRoom.gd" id="1"]
+
+[node name="AlchemyScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+room_id = "alchemy"
+room_title = "Алхимия"
+room_subtitle = "Бурлящий котёл и гримуар зелий. Здесь варятся эликсиры и зелья."
+center_object_text = "БУРЛЯЩИЙ КОТЁЛ\n\n(здесь будет варка зелий)"
+background_color = Color(0.06, 0.09, 0.13, 1)

@@ -73,6 +73,19 @@ func get_archive_count(card_id: String) -> int:
 	return int(archive_inventory.get(card_id, 0))
 
 
+## Все карты, которые игра уже видела (для сетки Архива в UI):
+## и те, что лежат в Архиве, и те, что сейчас по рукам комнат.
+## Отсортировано по названию, чтобы сетка не прыгала.
+func get_known_cards() -> Array[CardData]:
+	var cards: Array[CardData] = []
+	for key in card_registry.keys():
+		var card := card_registry[String(key)] as CardData
+		if card != null:
+			cards.append(card)
+	cards.sort_custom(func(a: CardData, b: CardData) -> bool: return a.title < b.title)
+	return cards
+
+
 ## Веер комнаты. Возвращается именно хранимый массив, а не копия:
 ## поменял его — поменялась рука комнаты.
 func get_room_hand(room_id: String) -> Array[CardData]:

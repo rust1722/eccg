@@ -24,11 +24,18 @@ const ROOM_TITLES: Dictionary = {
 	"archive": "Архив",
 }
 
-## Комнаты, у которых уже есть сцена. Остальные на указателе
-## показываются выключенными с пометкой "скоро".
+## Комнаты, у которых уже есть сцена. С этапа 3 сцены есть у всех
+## комнат (пока это заглушки PlaceholderRoom), указатель полностью живой.
 const ROOM_SCENES: Dictionary = {
 	"bar": "res://scenes/rooms/BarScene.tscn",
 	"garden": "res://scenes/rooms/GardenScene.tscn",
+	"kitchen": "res://scenes/rooms/KitchenScene.tscn",
+	"forge": "res://scenes/rooms/ForgeScene.tscn",
+	"alchemy": "res://scenes/rooms/AlchemyScene.tscn",
+	"library": "res://scenes/rooms/LibraryScene.tscn",
+	"shop": "res://scenes/rooms/ShopScene.tscn",
+	"cabinet": "res://scenes/rooms/CabinetScene.tscn",
+	"archive": "res://scenes/rooms/ArchiveScene.tscn",
 }
 
 var current_room_id: String = ""
