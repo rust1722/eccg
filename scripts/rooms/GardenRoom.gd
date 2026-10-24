@@ -1,28 +1,24 @@
 extends Control
 ## Комната «Сад» — первая настоящая механика игры (этап 4).
 ##
-## Как играть (всё кликами, перетаскивание будет позже):
-##   1) клик по карте СЕМЕНИ в веере внизу (карта подсветится золотым),
-##   2) клик по пустому горшку — росток посажен;
-##   3) клик по карте ВОДЫ в веере, клик по ростку — пошёл таймер;
-##   4) когда горшок золотой («Созрело») — клик по нему собирает
-##      урожай в веер, а при полном веере — в Архив.
+## Как играть (карты ТАСКАЮТ мышью — тактильно, рукой на объект):
+##   1) перетащить карту СЕМЕНИ из веера на пустой горшок — посажено;
+##   2) перетащить карту ВОДЫ на росток — пошёл таймер;
+##   3) когда горшок золотой («Созрело») — обычный клик по нему
+##      собирает урожай в веер, а при полном веере — в Архив.
+## Горшок сам подсвечивается, когда над ним держат подходящую карту.
 ## Состояние горшков и таймеры живут в GardenManager, поэтому
 ## растения растут, пока игрок ходит по другим комнатам.
 
 var _status_label: Label
 var _info_label: Label
 var _pots: Array[PotView] = []
-var _hand_ui: HandUI
 var _refresh_accumulator: float = 0.0
 
 
 func _ready() -> void:
 	_build_ui()
 
-	_hand_ui = get_tree().get_first_node_in_group("hand_ui") as HandUI
-	if _hand_ui != null:
-		_hand_ui.selection_changed.connect(_on_selection_changed)
 	GardenManager.garden_changed.connect(_on_garden_changed)
 	_refresh_all()
 	print("[Garden] room opened")
@@ -38,17 +34,6 @@ func _process(delta: float) -> void:
 		_update_info()
 
 
-func _on_selection_changed(card: CardData) -> void:
-	if card == null:
-		_status_label.text = "Выберите карту в веере внизу, затем кликните горшок."
-	elif card is SeedCardData:
-		_status_label.text = "Выбрано семя: %s. Теперь кликните пустой горшок." % card.title
-	elif card.id == "water":
-		_status_label.text = "Выбрана вода. Теперь кликните посаженный росток."
-	else:
-		_status_label.text = "Выбрано: %s. Эту карту в саду не применить." % card.title
-
-
 func _on_garden_changed() -> void:
 	_refresh_all()
 
@@ -62,7 +47,7 @@ func _refresh_all() -> void:
 func _update_info() -> void:
 	var ready_count := GardenManager.get_ready_count()
 	_info_label.text = "Горшков: %d\nСозрело: %d\n\n" % [GardenManager.POT_COUNT, ready_count] \
-		+ "Семя -> горшок\nВода -> росток\nКлик по зрелому -> урожай"
+		+ "Семя — тащить на горшок\nВода — тащить на росток\nКлик по зрелому -> урожай"
 
 
 func _on_pot_clicked(pot_index: int) -> void:
@@ -79,32 +64,22 @@ func _on_pot_clicked(pot_index: int) -> void:
 		_refresh_all()
 		return
 
-	var selected: CardData = null
-	if _hand_ui != null:
-		selected = _hand_ui.get_selected_card()
-
+	# Клик по незрелому горшку теперь только подсказка: карты сюда таскают.
 	match state:
 		GardenManager.PotState.EMPTY:
-			if selected == null:
-				_status_label.text = "Сначала кликните семя в веере внизу."
-				return
-			if not (selected is SeedCardData):
-				_status_label.text = "Сюда нужно семя, а выбрано: %s." % selected.title
-				return
-			if GardenManager.plant_seed(pot_index, selected):
-				_status_label.text = "Посажено: %s. Теперь нужна вода." % selected.title
+			_status_label.text = "Перетащите сюда семя из веера внизу."
 		GardenManager.PotState.NEEDS_WATER:
-			if selected == null:
-				_status_label.text = "Сначала кликните воду в веере внизу."
-				return
-			if selected.id != "water":
-				_status_label.text = "Ростку нужна вода, а выбрано: %s." % selected.title
-				return
-			if GardenManager.water_pot(pot_index, selected):
-				_status_label.text = "Полито! Таймер пошёл — можно заниматься другими комнатами."
+			_status_label.text = "Перетащите сюда воду из веера внизу."
 		GardenManager.PotState.GROWING:
 			_status_label.text = "Ещё растёт: осталось %d сек." % GardenManager.get_time_left(pot_index)
 
+
+func _on_pot_card_dropped(pot_index: int, card: CardData) -> void:
+	var state := GardenManager.get_pot_state(pot_index)
+	if state == GardenManager.PotState.EMPTY and GardenManager.plant_seed(pot_index, card):
+		_status_label.text = "Посажено: %s. Теперь перетащите сюда воду." % card.title
+	elif state == GardenManager.PotState.NEEDS_WATER and GardenManager.water_pot(pot_index, card):
+		_status_label.text = "Полито! Таймер пошёл — можно заниматься другими комнатами."
 	_refresh_all()
 
 
@@ -136,7 +111,7 @@ func _build_ui() -> void:
 	add_child(title_label)
 
 	var subtitle_label := Label.new()
-	subtitle_label.text = "Кликните семя или воду в веере внизу, затем кликните горшок. " \
+	subtitle_label.text = "Перетащите семя или воду из веера на горшок. " \
 		+ "Растения растут сами, пока вы в других комнатах."
 	subtitle_label.position = Vector2(38, 80)
 	subtitle_label.custom_minimum_size = Vector2(760, 40)
@@ -146,7 +121,7 @@ func _build_ui() -> void:
 	add_child(subtitle_label)
 
 	_status_label = Label.new()
-	_status_label.text = "Выберите карту в веере внизу, затем кликните горшок."
+	_status_label.text = "Перетащите семя из веера на пустой горшок."
 	_status_label.position = Vector2(38, 124)
 	_status_label.custom_minimum_size = Vector2(760, 30)
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -166,6 +141,7 @@ func _build_ui() -> void:
 		var pot := PotView.new()
 		pot.setup(i)
 		pot.pot_clicked.connect(_on_pot_clicked)
+		pot.pot_card_dropped.connect(_on_pot_card_dropped)
 		grid.add_child(pot)
 		_pots.append(pot)
 

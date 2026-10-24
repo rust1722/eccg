@@ -5,8 +5,10 @@ extends PanelContainer
 ## Логика (посадить/полить/собрать) — в GardenRoom и GardenManager.
 
 signal pot_clicked(pot_index: int)
+signal pot_card_dropped(pot_index: int, card: CardData)
 
 var pot_index: int = 0
+var _drop_highlight: bool = false
 
 var _style: StyleBoxFlat
 var _title_label: Label
@@ -35,6 +37,46 @@ func _on_gui_input(event: InputEvent) -> void:
 			accept_event()
 
 
+func _process(_delta: float) -> void:
+	# Перетаскивание закончилось где-то в другом месте: снять подсветку.
+	if _drop_highlight and get_viewport() != null and not get_viewport().gui_is_dragging():
+		_drop_highlight = false
+		refresh_display()
+
+
+## Сюда ли можно сбросить перетаскиваемую карту прямо сейчас?
+## Пустой горшок берёт только семена, росток — только воду.
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	var card := _card_from_drag_data(data)
+	var can_drop := false
+	if card != null:
+		var state := GardenManager.get_pot_state(pot_index)
+		if state == GardenManager.PotState.EMPTY and card is SeedCardData:
+			can_drop = true
+		elif state == GardenManager.PotState.NEEDS_WATER and card.id == "water":
+			can_drop = true
+	if can_drop != _drop_highlight:
+		_drop_highlight = can_drop
+		refresh_display()
+	return can_drop
+
+
+func _drop_data(_at_position: Vector2, data: Variant) -> void:
+	_drop_highlight = false
+	var card := _card_from_drag_data(data)
+	if card != null:
+		pot_card_dropped.emit(pot_index, card)
+	refresh_display()
+
+
+func _card_from_drag_data(data: Variant) -> CardData:
+	if data is Dictionary:
+		var dict := data as Dictionary
+		if String(dict.get("kind", "")) == "hand_card":
+			return dict.get("card") as CardData
+	return null
+
+
 func refresh_display() -> void:
 	if not _built:
 		return
@@ -43,6 +85,11 @@ func refresh_display() -> void:
 	var seed := pot["seed_card"] as SeedCardData
 
 	custom_minimum_size = Vector2(178, 138)
+	if _drop_highlight:
+		_style.border_color = Color(1.0, 0.85, 0.35)
+		_style.set_border_width_all(4)
+	else:
+		_style.set_border_width_all(2)
 	_title_label.text = "Горшок %d" % (pot_index + 1)
 
 	match state:
@@ -50,12 +97,12 @@ func refresh_display() -> void:
 			_style.bg_color = Color(0.16, 0.12, 0.09)
 			_style.border_color = Color(0.5, 0.38, 0.22, 0.7)
 			_state_label.text = "Пустой"
-			_timer_label.text = "Нужно семя из веера"
+			_timer_label.text = "Перетащите сюда семя"
 		GardenManager.PotState.NEEDS_WATER:
 			_style.bg_color = Color(0.13, 0.17, 0.10)
 			_style.border_color = Color(0.55, 0.62, 0.35, 0.8)
 			_state_label.text = "Росток: %s" % (seed.title if seed != null else "?")
-			_timer_label.text = "Нужна вода из веера"
+			_timer_label.text = "Перетащите сюда воду"
 		GardenManager.PotState.GROWING:
 			_style.bg_color = Color(0.10, 0.20, 0.12)
 			_style.border_color = Color(0.4, 0.7, 0.4, 0.9)

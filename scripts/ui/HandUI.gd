@@ -12,12 +12,10 @@ extends Control
 ## Какие карты показать, HandUI не придумывает сам: это общий веер
 ## из InventoryManager.current_hand.
 ##
-## В обычном режиме (Архив закрыт) клик по карте ВЫБИРАЕТ её
-## (золотая рамка, сигнал selection_changed) — комната, например Сад,
-## применяет выбранную карту к своему объекту. Этот же веер слушаем
-## снаружи через группу "hand_ui".
-
-signal selection_changed(card)
+## В обычном режиме (Архив закрыт) карты из веера ТАСКАЮТ мышью
+## на объекты комнат (горшок, стол крафта, гость): это даёт тактильное
+## "положил рукой". Клики остаются только при открытом Архиве —
+## там перекидать карты кликами быстрее, чем таскать.
 
 const CARD_SIZE := Vector2(104, 136)
 const FAN_WIDTH: float = 548.0
@@ -33,8 +31,7 @@ var archive_target_global_position: Vector2 = Vector2.ZERO
 
 var _views: Array[Control] = []
 var _animating: bool = false
-var _selected_card: CardData
-var _selected_view: CardView
+var _refresh_queued: bool = false
 
 
 func _ready() -> void:
@@ -49,38 +46,33 @@ func is_animating() -> bool:
 
 func set_archive_mode(enabled: bool) -> void:
 	archive_mode = enabled
-	if enabled:
-		clear_selection()
-
-
-func get_selected_card() -> CardData:
-	return _selected_card
-
-
-func clear_selection() -> void:
-	if _selected_view != null and is_instance_valid(_selected_view):
-		_selected_view.set_selected(false)
-	_selected_card = null
-	_selected_view = null
-	selection_changed.emit(null)
+	# Архив открыт — таскать нельзя (там клики), закрыт — можно.
+	for view in _views:
+		if view is CardView:
+			(view as CardView).drag_enabled = not enabled
 
 
 func _on_room_changed(_from_room_id: String, _to_room_id: String) -> void:
-	clear_selection()
+	# Нижняя панель при смене комнат никак не меняется; здесь делать нечего,
+	# подключение оставлено на будущее (бой и т.п.).
+	pass
 
 
-## Веер поменялся снаружи (Сад забрал семя, урожай упал в веер и т.д.).
+## Веер поменялся снаружи (Сад забрал семя при сбросе карты, урожай
+## упал в веер и т.д.). Обновляемся С ОТСРОЧКОЙ на кадр: прямо сейчас
+## может ещё идти drag-and-drop, и освобождать перетаскиваемую карту
+## в середине сброса нельзя.
 ## Во время собственных анимаций Архива не мешаем: там виды уже верные.
 func _on_hand_changed() -> void:
-	if _animating:
+	if _animating or _refresh_queued:
 		return
-	_refresh_instant()
+	_refresh_queued = true
+	_refresh_instant.call_deferred()
 
 
 ## Пересобрать веер на месте, без выезда снизу (для внешних изменений).
 func _refresh_instant() -> void:
-	_selected_card = null
-	_selected_view = null
+	_refresh_queued = false
 	_clear_views()
 
 	var cards := InventoryManager.get_hand()
@@ -106,25 +98,17 @@ func _refresh_instant() -> void:
 func _make_card_view(card: CardData) -> CardView:
 	var view := CardView.new()
 	view.setup(card)
+	view.drag_enabled = not archive_mode
 	view.card_clicked.connect(_on_card_view_clicked.bind(view))
 	return view
 
 
 func _on_card_view_clicked(_card: CardData, view: CardView) -> void:
-	if _animating:
+	# Клики по вееру работают только при открытом Архиве (улететь в Архив).
+	# В комнатах карты не кликают, а таскают на объекты.
+	if not archive_mode or _animating:
 		return
-	if archive_mode:
-		animate_card_to_archive(view)
-		return
-	# Обычный режим: клик выбирает карту (второй клик по ней же — снять).
-	if _selected_view == view:
-		clear_selection()
-		return
-	clear_selection()
-	_selected_card = view.card_data
-	_selected_view = view
-	view.set_selected(true)
-	selection_changed.emit(_selected_card)
+	animate_card_to_archive(view)
 
 
 ## Раскладка веера: чем больше карт, тем сильнее они сжимаются

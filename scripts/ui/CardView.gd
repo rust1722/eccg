@@ -21,11 +21,14 @@ const TYPE_COLORS: Dictionary = {
 }
 
 var card_data: CardData
+## Можно ли таскать эту карту мышью (drag-and-drop в комнатах).
+## Ставит владелец: веер включает таскание, когда Архив закрыт;
+## в панели Архива и в самом веере при открытом Архиве — клики.
+var drag_enabled: bool = false
 
 var _count_label: Label
 var _built: bool = false
 var _pending_count: int = -1
-var _selected: bool = false
 
 
 func setup(card: CardData) -> void:
@@ -44,7 +47,33 @@ func _on_gui_input(event: InputEvent) -> void:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			card_clicked.emit(card_data)
-			accept_event()
+			# Когда карту можно таскать, событие не глушим:
+			# иначе Godot не начнёт перетаскивание.
+			if not drag_enabled:
+				accept_event()
+
+
+## Начало перетаскивания (Godot вызывает сам, когда карту потянули).
+## Возвращаем словарь с картой: его получат _can_drop_data/_drop_data
+## у объекта-цели (горшок, стол крафта, гость...).
+func _get_drag_data(_at_position: Vector2) -> Variant:
+	if not drag_enabled or card_data == null:
+		return null
+	var preview := CardView.new()
+	preview.setup(card_data)
+	preview.custom_minimum_size = Vector2(104, 136)
+	preview.size = Vector2(104, 136)
+	preview.modulate = Color(1, 1, 1, 0.85)
+	set_drag_preview(preview)
+	modulate.a = 0.45
+	return {"kind": "hand_card", "card": card_data}
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END:
+		# Перетаскивание кончилось (сбросили или отменили) —
+		# карта в веере снова непрозрачная.
+		modulate.a = 1.0
 
 
 ## Количество "×N" в ПРАВОМ ВЕРХНЕМ УГЛУ карты (для панели Архива).
@@ -65,16 +94,14 @@ func _apply_count_badge() -> void:
 	_count_label.text = "×%d" % _pending_count
 
 
-## Подсветка выбранной карты (клик в веере вне Архива, этап Сада):
-## золотая толстая рамка вместо обычной.
+## Подсветка рамки (для наведения перетаскиваемой карты и т.п.).
 func set_selected(value: bool) -> void:
-	_selected = value
 	if not _built:
 		return
 	var style := get_theme_stylebox("panel") as StyleBoxFlat
 	if style == null:
 		return
-	if _selected:
+	if value:
 		style.set_border_width_all(4)
 		style.border_color = Color(1.0, 0.85, 0.35)
 	else:
