@@ -136,19 +136,22 @@ func _layout_target(index: int, total: int, view_size: Vector2) -> Vector2:
 	if total > 1:
 		var usable_width := minf(FAN_WIDTH, size.x - 16.0)
 		spacing = minf(spacing, (usable_width - CARD_SIZE.x) / float(total - 1))
-	# Все карты стоят на ОДНОЙ высоте. Раньше боковые садились ниже
-	# «дугой» (до +7 px за шаг) и у дальних карт низ уезжал за край
-	# экрана — они выглядели короткими. Веерность теперь даёт только
-	# лёгкий поворот карт, без спуска.
+	# Все карты стоят на ОДНОЙ высоте и БЕЗ наклона. Наклон веером
+	# пробовали дважды, и оба раза часть карт выглядела короткой:
+	# повёрнутая карта углами торчит выше и ниже соседних, поэтому
+	# прямые карты рядом (или у края экрана) кажутся обрезанными,
+	# хотя размер у всех один — 104x136. Веер теперь — просто
+	# аккуратный ряд с перекрытием, все карты пиксель в пиксель
+	# одной высоты.
 	return Vector2(
 		(size.x - view_size.x) * 0.5 + offset_from_center * spacing,
 		SETTLED_Y
 	)
 
 
-func _layout_rotation(index: int, total: int) -> float:
-	var offset_from_center := float(index) - float(total - 1) * 0.5
-	return offset_from_center * 3.0
+func _layout_rotation(_index: int, _total: int) -> float:
+	# Наклона нет специально, см. комментарий выше.
+	return 0.0
 
 
 func _global_to_local(global_point: Vector2) -> Vector2:
