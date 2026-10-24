@@ -169,11 +169,28 @@ func _build() -> void:
 	vbox.add_theme_constant_override("separation", 4)
 	add_child(vbox)
 
-	# Верхняя строка: тип слева, количество ×N — в правом углу.
+	# Верхняя строка: ценник (если разрешён) в ЛЕВОМ верхнем углу,
+	# дальше тип, количество ×N — в правом углу. Левый верхний угол
+	# выбран потому, что в веере правый и нижний края карт закрыты
+	# соседними картами, а левый верхний всегда на виду.
 	var top_row := HBoxContainer.new()
 	top_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top_row.add_theme_constant_override("separation", 4)
 	vbox.add_child(top_row)
+
+	_price_label = Label.new()
+	_price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_price_label.add_theme_font_size_override("font_size", 11)
+	_price_label.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
+	var price_style := StyleBoxFlat.new()
+	price_style.bg_color = Color(0, 0, 0, 0.45)
+	price_style.set_corner_radius_all(6)
+	price_style.content_margin_left = 5
+	price_style.content_margin_right = 5
+	_price_label.add_theme_stylebox_override("normal", price_style)
+	top_row.add_child(_price_label)
+	_apply_price_display()
 
 	var type_label := Label.new()
 	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -212,27 +229,3 @@ func _build() -> void:
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
-
-	# Нижняя строка: ценник в правом нижнем углу (если владелец разрешил).
-	var bottom_row := HBoxContainer.new()
-	bottom_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(bottom_row)
-
-	var bottom_spacer := Control.new()
-	bottom_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bottom_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom_row.add_child(bottom_spacer)
-
-	_price_label = Label.new()
-	_price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_price_label.add_theme_font_size_override("font_size", 11)
-	_price_label.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
-	var price_style := StyleBoxFlat.new()
-	price_style.bg_color = Color(0, 0, 0, 0.45)
-	price_style.set_corner_radius_all(6)
-	price_style.content_margin_left = 5
-	price_style.content_margin_right = 5
-	_price_label.add_theme_stylebox_override("normal", price_style)
-	bottom_row.add_child(_price_label)
-	_apply_price_display()
