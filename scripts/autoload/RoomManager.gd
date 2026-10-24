@@ -10,6 +10,7 @@ extends Node
 ## Игрок ходит сюда только через указатель с вороной (SignpostNav).
 
 signal room_changed(previous_room_id: String, room_id: String)
+signal room_transition_started(previous_room_id: String, room_id: String)
 
 ## Все комнаты в порядке дощечек указателя (DESIGN.md §6.3).
 const ROOM_TITLES: Dictionary = {
@@ -91,7 +92,13 @@ func go_to_room(room_id: String) -> void:
 
 	_transition_busy = true
 	var from_room_id := current_room_id
+	room_transition_started.emit(from_room_id, room_id)
 	print("[RoomManager] go_to_room: '%s' -> '%s'" % [from_room_id, room_id])
+
+	# Не спорим с полётами карт веер<->Архив: дождёмся их конца.
+	if _hand_ui != null:
+		while _hand_ui.is_animating():
+			await get_tree().process_frame
 
 	# 1) Старый веер уезжает вниз. У самой первой комнаты веера ещё нет.
 	if _hand_ui != null and from_room_id != "":

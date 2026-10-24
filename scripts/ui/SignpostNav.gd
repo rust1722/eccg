@@ -11,7 +11,7 @@ extends Control
 
 const LEFT_COLUMN: Array[String] = ["bar", "garden", "shop", "cabinet", "archive"]
 const RIGHT_COLUMN: Array[String] = ["kitchen", "forge", "alchemy", "library"]
-const PLANK_SIZE := Vector2(130, 36)
+const PLANK_SIZE := Vector2(112, 36)
 
 var _crow_label: Label
 var _buttons: Dictionary = {}
@@ -23,18 +23,18 @@ func _ready() -> void:
 	# Столб указателя по центру между столбцами дощечек.
 	var pole := ColorRect.new()
 	pole.color = Color(0.16, 0.11, 0.07)
-	pole.position = Vector2(132, 42)
-	pole.size = Vector2(12, 288)
+	pole.position = Vector2(118, 42)
+	pole.size = Vector2(10, 288)
 	pole.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(pole)
 
 	_make_plank_column(LEFT_COLUMN, Vector2(4, 58))
-	_make_plank_column(RIGHT_COLUMN, Vector2(142, 82))
+	_make_plank_column(RIGHT_COLUMN, Vector2(124, 82))
 
 	# Ворона сидит сверху на указателе.
 	var crow_panel := PanelContainer.new()
-	crow_panel.position = Vector2(78, 8)
-	crow_panel.size = Vector2(120, 36)
+	crow_panel.position = Vector2(71, 8)
+	crow_panel.size = Vector2(104, 36)
 	var crow_style := StyleBoxFlat.new()
 	crow_style.bg_color = Color(0.08, 0.09, 0.14, 0.95)
 	crow_style.set_border_width_all(1)
@@ -62,7 +62,7 @@ func _make_plank_column(room_ids: Array[String], start_position: Vector2) -> voi
 		button.position = start_position + Vector2(0, i * 41)
 		button.size = PLANK_SIZE
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.add_theme_font_size_override("font_size", 12)
+		button.add_theme_font_size_override("font_size", 11)
 		button.add_theme_stylebox_override("normal", _plank_style(Color(0.23, 0.16, 0.10)))
 		button.add_theme_stylebox_override("hover", _plank_style(Color(0.32, 0.22, 0.13)))
 		button.add_theme_stylebox_override("pressed", _plank_style(Color(0.42, 0.30, 0.14)))

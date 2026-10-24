@@ -15,18 +15,18 @@ func _ready() -> void:
 	style.set_border_width_all(1)
 	style.border_color = Color(0.85, 0.72, 0.45, 0.45)
 	style.set_corner_radius_all(8)
-	style.content_margin_left = 10
-	style.content_margin_right = 10
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
 	add_theme_stylebox_override("panel", style)
 
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 10)
+	hbox.add_theme_constant_override("separation", 8)
 	add_child(hbox)
 
 	var avatar := PanelContainer.new()
-	avatar.custom_minimum_size = Vector2(58, 72)
+	avatar.custom_minimum_size = Vector2(44, 56)
 	var avatar_style := StyleBoxFlat.new()
 	avatar_style.bg_color = Color(0.32, 0.26, 0.45)
 	avatar_style.set_border_width_all(2)
@@ -36,28 +36,28 @@ func _ready() -> void:
 	_level_label = Label.new()
 	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_level_label.add_theme_font_size_override("font_size", 14)
+	_level_label.add_theme_font_size_override("font_size", 12)
 	_level_label.add_theme_color_override("font_color", Color(1, 0.97, 0.88))
 	avatar.add_child(_level_label)
 	hbox.add_child(avatar)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
+	vbox.add_theme_constant_override("separation", 1)
 	hbox.add_child(vbox)
 
 	var name_label := Label.new()
 	name_label.text = "Ведьмочка"
-	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.add_theme_font_size_override("font_size", 13)
 	name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.82))
 	vbox.add_child(name_label)
 
 	_hp_label = Label.new()
-	_hp_label.add_theme_font_size_override("font_size", 13)
+	_hp_label.add_theme_font_size_override("font_size", 12)
 	_hp_label.add_theme_color_override("font_color", Color(1, 0.55, 0.5))
 	vbox.add_child(_hp_label)
 
 	_gold_label = Label.new()
-	_gold_label.add_theme_font_size_override("font_size", 14)
+	_gold_label.add_theme_font_size_override("font_size", 12)
 	_gold_label.add_theme_color_override("font_color", Color(1, 0.85, 0.45))
 	vbox.add_child(_gold_label)
 

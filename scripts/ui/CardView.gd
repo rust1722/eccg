@@ -1,7 +1,11 @@
 class_name CardView
 extends PanelContainer
-## Одна видимая карта в веере. Только показывает данные CardData:
-## название, тип и цены. Перетаскивание добавим на следующих этапах.
+## Одна видимая карта: в веере руки и в панели Архива размер одинаковый.
+## Только показывает данные CardData: название, тип и цены.
+## Клик по карте сообщает сигналом card_clicked — что делать с картой,
+## решает владелец (веер или Архив).
+
+signal card_clicked(card_data: CardData)
 
 const TYPE_COLORS: Dictionary = {
 	0: Color(0.45, 0.52, 0.38), # CREATURE
@@ -18,6 +22,8 @@ const TYPE_COLORS: Dictionary = {
 
 var card_data: CardData
 
+var _count_label: Label
+
 
 func setup(card: CardData) -> void:
 	card_data = card
@@ -26,7 +32,36 @@ func setup(card: CardData) -> void:
 
 
 func _ready() -> void:
+	gui_input.connect(_on_gui_input)
 	_build()
+
+
+func _on_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			card_clicked.emit(card_data)
+			accept_event()
+
+
+## Бейдж "×N" в углу карты для панели Архива (сколько таких в Архиве).
+func set_count_badge(count: int) -> void:
+	if _count_label == null:
+		_count_label = Label.new()
+		_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_count_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_count_label.z_index = 5
+		_count_label.add_theme_font_size_override("font_size", 15)
+		_count_label.add_theme_color_override("font_color", Color(1, 0.9, 0.55))
+		var badge_style := StyleBoxFlat.new()
+		badge_style.bg_color = Color(0, 0, 0, 0.45)
+		badge_style.set_corner_radius_all(8)
+		badge_style.content_margin_right = 7
+		badge_style.content_margin_top = 3
+		_count_label.add_theme_stylebox_override("normal", badge_style)
+		add_child(_count_label)
+	_count_label.text = "×%d " % count
 
 
 func _build() -> void:
