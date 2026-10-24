@@ -95,10 +95,11 @@ func _on_room_changed(_from_room_id: String, room_id: String) -> void:
 
 
 func _refresh() -> void:
-	for room_id in _buttons.keys():
+	for key in _buttons.keys():
+		var room_id := String(key)
 		var button: Button = _buttons[room_id]
-		var implemented := RoomManager.is_room_implemented(room_id)
-		var is_current := room_id == RoomManager.current_room_id
+		var implemented: bool = RoomManager.is_room_implemented(room_id)
+		var is_current: bool = room_id == RoomManager.current_room_id
 		button.disabled = not implemented or is_current or RoomManager.is_transitioning()
 		var prefix := "> " if is_current else ""
 		var suffix := "" if implemented else " (скоро)"

@@ -46,19 +46,19 @@ func _seed_test_cards() -> void:
 		InventoryManager.add_to_archive(card, int(start_counts.get(card.id, 1)))
 
 	# Сад: семена, вода, зелень.
-	InventoryManager.add_card_to_room_hand("garden", by_id["seed_sunflower"])
-	InventoryManager.add_card_to_room_hand("garden", by_id["water"])
-	InventoryManager.add_card_to_room_hand("garden", by_id["herbs"])
+	InventoryManager.add_card_to_room_hand("garden", by_id["seed_sunflower"] as CardData)
+	InventoryManager.add_card_to_room_hand("garden", by_id["water"] as CardData)
+	InventoryManager.add_card_to_room_hand("garden", by_id["herbs"] as CardData)
 	# Кухня: мясо, вода, зелень и рецепт супа (комнаты пока нет, рука уже ждёт).
-	InventoryManager.add_card_to_room_hand("kitchen", by_id["meat"])
-	InventoryManager.add_card_to_room_hand("kitchen", by_id["water"])
-	InventoryManager.add_card_to_room_hand("kitchen", by_id["herbs"])
-	InventoryManager.add_card_to_room_hand("kitchen", by_id["soup_recipe"])
+	InventoryManager.add_card_to_room_hand("kitchen", by_id["meat"] as CardData)
+	InventoryManager.add_card_to_room_hand("kitchen", by_id["water"] as CardData)
+	InventoryManager.add_card_to_room_hand("kitchen", by_id["herbs"] as CardData)
+	InventoryManager.add_card_to_room_hand("kitchen", by_id["soup_recipe"] as CardData)
 	# Бар: суп и зелье гостям.
-	InventoryManager.add_card_to_room_hand("bar", by_id["soup"])
-	InventoryManager.add_card_to_room_hand("bar", by_id["potion_health"])
+	InventoryManager.add_card_to_room_hand("bar", by_id["soup"] as CardData)
+	InventoryManager.add_card_to_room_hand("bar", by_id["potion_health"] as CardData)
 	# Кабинет: задание для карты мира.
-	InventoryManager.add_card_to_room_hand("cabinet", by_id["quest_tower"])
+	InventoryManager.add_card_to_room_hand("cabinet", by_id["quest_tower"] as CardData)
 
 	print("[Stage2] seeded: bar=", _titles("bar"),
 			" garden=", _titles("garden"),

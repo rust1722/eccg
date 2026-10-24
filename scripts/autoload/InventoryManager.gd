@@ -129,15 +129,16 @@ func clear_room_hand_to_archive(room_id: String) -> void:
 
 ## "Собрать всё в Архив" вообще из всех комнат.
 func collect_all_hands_to_archive() -> void:
-	for room_id in room_hands.keys():
-		clear_room_hand_to_archive(room_id)
+	for room_key in room_hands.keys():
+		clear_room_hand_to_archive(String(room_key))
 
 
 ## Данные для сохранения (SaveManager, DESIGN.md §6.6): только id и
 ## количества, сами карты восстановим по реестру при загрузке.
 func get_save_data() -> Dictionary:
 	var hand_ids: Dictionary = {}
-	for room_id in room_hands.keys():
+	for room_key in room_hands.keys():
+		var room_id := String(room_key)
 		var ids: Array[String] = []
 		for card in get_room_hand(room_id):
 			ids.append(card.id)
@@ -151,10 +152,11 @@ func get_save_data() -> Dictionary:
 func load_save_data(data: Dictionary) -> void:
 	archive_inventory = data.get("archive_inventory", {}).duplicate()
 	var hand_ids: Dictionary = data.get("room_hand_ids", {})
-	for room_id in hand_ids.keys():
-		var hand := get_room_hand(room_id)
+	for room_key in hand_ids.keys():
+		var hand := get_room_hand(String(room_key))
 		hand.clear()
-		for card_id in hand_ids[room_id]:
+		for card_key in hand_ids[room_key]:
+			var card_id := String(card_key)
 			if card_registry.has(card_id):
-				hand.append(card_registry[card_id])
+				hand.append(card_registry[card_id] as CardData)
 	archive_changed.emit()
