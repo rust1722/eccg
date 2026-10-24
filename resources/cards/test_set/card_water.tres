@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ConsumableCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ConsumableCardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "water"
+title = "Вода"
+description = "Ингредиент. Нужна для готовки и полива растений в саду."
+card_type = 3
+is_consumable = true
+buy_price = 1
+sell_price = 0
+mana_cost = 0
+stack_limit = 99

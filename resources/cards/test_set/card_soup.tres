@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ConsumableCardData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ConsumableCardData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/CardEffect.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/cards/test_set/card_soup_recipe.tres" id="3"]
+
+[sub_resource type="Resource" id="Resource_heal_5"]
+script = ExtResource("2")
+effect_type = 1
+target_type = 4
+value = 5
+
+[resource]
+script = ExtResource("1")
+id = "soup"
+title = "Лесной суп"
+description = "Еда для гостей бара. Восстанавливает 5 здоровья."
+card_type = 4
+is_consumable = true
+buy_price = 12
+sell_price = 6
+mana_cost = 0
+stack_limit = 10
+effects = [SubResource("Resource_heal_5")]
+craft_recipe = ExtResource("3")

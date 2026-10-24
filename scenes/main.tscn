@@ -12,7 +12,7 @@ offset_top = 40.0
 offset_right = 1112.0
 offset_bottom = 110.0
 theme_override_font_sizes/font_size = 40
-text = "Hello from Arena + GitHub + Godot!"
+text = "Stage 1: foundation ready"
 autowrap_mode = 2
 
 [node name="Subtitle" type="Label" parent="."]
@@ -23,7 +23,7 @@ offset_right = 1112.0
 offset_bottom = 190.0
 theme_override_colors/font_color = Color(0.65, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 24
-text = "If you see this — sync works."
+text = "Test cards, Archive and room hands are in the project."
 autowrap_mode = 2
 
 [node name="Hint" type="Label" parent="."]
@@ -34,5 +34,5 @@ offset_right = 1112.0
 offset_bottom = 260.0
 theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-text = "F5 / Play in Godot — to run. Ask Arena to edit scripts/scenes and push."
+text = "Press F5 and look at the Output panel at the bottom of Godot."
 autowrap_mode = 2

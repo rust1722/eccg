@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "quest_tower"
+title = "Задание: Заброшенная башня"
+description = "Перетащить на книгу заданий в кабинете, чтобы открыть точку на карте мира."
+card_type = 9
+is_consumable = true
+buy_price = 0
+sell_price = 0

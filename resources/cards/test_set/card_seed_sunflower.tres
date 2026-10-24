@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SeedCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SeedCardData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "seed_sunflower"
+title = "Семена подсолнуха"
+description = "Посадить в горшок в саду и полить. Вырастет по таймеру."
+card_type = 6
+is_consumable = true
+buy_price = 2
+sell_price = 1
+mana_cost = 0
+stack_limit = 99
+grow_time_seconds = 180.0
