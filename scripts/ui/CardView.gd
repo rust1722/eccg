@@ -23,6 +23,7 @@ const TYPE_COLORS: Dictionary = {
 var card_data: CardData
 
 var _count_label: Label
+var _built: bool = false
 
 
 func setup(card: CardData) -> void:
@@ -65,8 +66,12 @@ func set_count_badge(count: int) -> void:
 
 
 func _build() -> void:
-	if card_data == null or get_child_count() > 0:
+	# НЕ проверяем get_child_count(): бейдж ×N добавляется до сборки
+	# и не должен отменять постройку самой карты (баг пустого Архива).
+	if card_data == null or _built:
 		return
+	_built = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	custom_minimum_size = Vector2(104, 136)
 	size = custom_minimum_size
@@ -84,10 +89,12 @@ func _build() -> void:
 	add_theme_stylebox_override("panel", style)
 
 	var vbox := VBoxContainer.new()
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_theme_constant_override("separation", 4)
 	add_child(vbox)
 
 	var title_label := Label.new()
+	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title_label.text = card_data.title
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -96,6 +103,7 @@ func _build() -> void:
 	vbox.add_child(title_label)
 
 	var type_label := Label.new()
+	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	type_label.text = CardData.CardType.keys()[card_data.card_type]
 	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	type_label.add_theme_font_size_override("font_size", 9)
@@ -103,10 +111,14 @@ func _build() -> void:
 	vbox.add_child(type_label)
 
 	var spacer := Control.new()
+	# Разделитель НЕ должен перехватывать клики: иначе нижняя
+	# половина карты мертва для мыши (баг, найденный автором).
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
 	var price_label := Label.new()
+	price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	price_label.text = "Куп. %d · Прод. %d" % [card_data.buy_price, card_data.sell_price]
 	price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	price_label.add_theme_font_size_override("font_size", 9)
