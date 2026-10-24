@@ -1,19 +1,22 @@
 class_name HandUI
 extends Control
-## Веер карт текущей комнаты в нижней полосе (система A+, DESIGN.md §6.5).
+## Веер карт игрока в нижней полосе. ОДИН на всю таверну
+## (решение 2026-10-25, DESIGN.md §6.5): при смене комнаты веер
+## не меняется и никуда не уезжает — меняется только сцена комнаты,
+## а вся нижняя панель всегда одна и та же.
 ##
-## Веер один на всю игру и живёт в оболочке. При смене комнаты RoomManager
-## вызывает animate_hide() -> show_room_hand(): старый веер уезжает вниз
-## за экран, новый вылезает снизу по картам (DESIGN.md §6.5.1).
-## Какие карты показать, HandUI не придумывает сам: берёт запоминаемую
-## руку комнаты из InventoryManager.room_hands.
+## Анимации остались только там, где состав веера реально меняется:
+##   - первый показ при старте игры: веер вылезает снизу;
+##   - Архив открыт: клик по карте веера — она улетает в Архив,
+##     клик по карте в Архиве — карта прилетает в веер.
+## Какие карты показать, HandUI не придумывает сам: это общий веер
+## из InventoryManager.current_hand.
 
 const CARD_SIZE := Vector2(104, 136)
 const FAN_WIDTH: float = 548.0
 const SETTLED_Y: float = 84.0
 const HIDDEN_OFFSET_Y: float = 210.0
 
-var current_room_id: String = ""
 ## Включён, пока открыта панель Архива: клик по карте веера
 ## отправляет её в Архив с анимацией полёта вверх.
 var archive_mode: bool = false
@@ -70,19 +73,19 @@ func _global_to_local(global_point: Vector2) -> Vector2:
 	return get_global_transform().affine_inverse() * global_point
 
 
-## Показать руку комнаты с анимацией выхода снизу.
-func show_room_hand(room_id: String) -> void:
-	current_room_id = room_id
+## Показать общий веер с анимацией выхода снизу.
+## Вызывается один раз при старте таверны и когда веер опустел
+## (показать плашку пустого веера тем же движением).
+func show_hand() -> void:
 	_clear_views()
 
-	var cards := InventoryManager.get_room_hand(room_id)
+	var cards := InventoryManager.get_hand()
 	if cards.is_empty():
 		_views.append(_make_empty_placeholder())
 	else:
 		for card in cards:
 			_views.append(_make_card_view(card))
 
-	var targets: Array[Vector2] = []
 	var count := _views.size()
 	for i in count:
 		var view := _views[i]
@@ -90,25 +93,17 @@ func show_room_hand(room_id: String) -> void:
 		var view_size: Vector2 = view.get_meta("fan_size", CARD_SIZE)
 		view.size = view_size
 		view.pivot_offset = view_size * 0.5
-		var offset_from_center := float(i) - float(count - 1) * 0.5
-		var spacing := 96.0
-		if count > 1:
-			spacing = minf(spacing, (FAN_WIDTH - CARD_SIZE.x) / float(count - 1))
-		var target := Vector2(
-			(size.x - view_size.x) * 0.5 + offset_from_center * spacing,
-			SETTLED_Y + absf(offset_from_center) * 7.0
-		)
-		targets.append(target)
-		view.position = target + Vector2(0, HIDDEN_OFFSET_Y)
-		view.rotation_degrees = offset_from_center * 5.0
+		view.position = _layout_target(i, count, view_size) + Vector2(0, HIDDEN_OFFSET_Y)
+		view.rotation_degrees = _layout_rotation(i, count)
 		view.modulate.a = 0.0
 		view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	_animating = true
 	var tween := create_tween().set_parallel(true)
-	for i in _views.size():
+	for i in count:
 		var view := _views[i]
-		tween.tween_property(view, "position", targets[i], 0.32) \
+		var view_size: Vector2 = view.get_meta("fan_size", CARD_SIZE)
+		tween.tween_property(view, "position", _layout_target(i, count, view_size), 0.32) \
 			.set_delay(float(i) * 0.03) \
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween.tween_property(view, "modulate:a", 1.0, 0.22) \
@@ -120,28 +115,6 @@ func show_room_hand(room_id: String) -> void:
 	_animating = false
 
 
-## Убрать веер вниз за экран (перед сменой комнаты).
-func animate_hide() -> void:
-	if _views.is_empty():
-		return
-	_animating = true
-	for view in _views:
-		view.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var tween := create_tween().set_parallel(true)
-	for i in _views.size():
-		var view := _views[i]
-		var delay := float(_views.size() - 1 - i) * 0.02
-		tween.tween_property(view, "position", view.position + Vector2(0, HIDDEN_OFFSET_Y), 0.24) \
-			.set_delay(delay) \
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-		tween.tween_property(view, "modulate:a", 0.0, 0.18).set_delay(delay)
-	await tween.finished
-
-	_clear_views()
-	_animating = false
-
-
 ## Карта из Архива "прилетает" в веер: появляется в точке панели
 ## Архива и летит на своё место в веере, остальные карты при этом
 ## плавно сдвигаются и сжимаются под новый размер веера.
@@ -149,11 +122,11 @@ func animate_hide() -> void:
 func animate_add_card_from(card: CardData, source_global_position: Vector2) -> void:
 	if _animating or card == null:
 		return
-	if InventoryManager.get_room_hand(current_room_id).size() >= InventoryManager.HAND_LIMIT:
+	if InventoryManager.get_hand().size() >= InventoryManager.HAND_LIMIT:
 		return
 
-	# В пустой руке вместо плашки-подсказки теперь будет карта.
-	if InventoryManager.get_room_hand(current_room_id).is_empty():
+	# В пустом веере вместо плашки-подсказки теперь будет карта.
+	if InventoryManager.get_hand().is_empty():
 		_clear_views()
 
 	_animating = true
@@ -178,11 +151,11 @@ func animate_add_card_from(card: CardData, source_global_position: Vector2) -> v
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	await tween.finished
 
-	if InventoryManager.add_card_to_room_hand(current_room_id, card):
+	if InventoryManager.add_card_to_hand(card):
 		for view in _views:
 			view.mouse_filter = Control.MOUSE_FILTER_STOP
 	else:
-		# Не легла (например, руку успели заполнить): убираем картинку.
+		# Не легла (например, веер успели заполнить): убираем картинку.
 		_views.erase(new_view)
 		remove_child(new_view)
 		new_view.queue_free()
@@ -226,7 +199,7 @@ func animate_card_to_archive(view: CardView) -> void:
 		tween.tween_property(other, "rotation_degrees", _layout_rotation(i, remaining.size()), 0.3)
 	await tween.finished
 
-	InventoryManager.move_hand_card_to_archive(current_room_id, card)
+	InventoryManager.move_hand_card_to_archive(card)
 	_views.erase(view)
 	remove_child(view)
 	view.queue_free()
@@ -234,9 +207,9 @@ func animate_card_to_archive(view: CardView) -> void:
 		other.mouse_filter = Control.MOUSE_FILTER_STOP
 	_animating = false
 
-	# Рука опустела: покажем плашку пустой руки как обычно.
+	# Веер опустел: покажем плашку пустого веера как обычно.
 	if remaining.is_empty():
-		await show_room_hand(current_room_id)
+		await show_hand()
 
 
 func _clear_views() -> void:
@@ -261,7 +234,7 @@ func _make_empty_placeholder() -> Control:
 	panel.add_theme_stylebox_override("panel", style)
 
 	var label := Label.new()
-	label.text = "В этой комнате рука пуста.\nОткройте Архив кнопкой «Колода»."
+	label.text = "Веер пуст.\nОткройте Архив кнопкой «Колода»."
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

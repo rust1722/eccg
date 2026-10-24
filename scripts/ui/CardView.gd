@@ -24,6 +24,7 @@ var card_data: CardData
 
 var _count_label: Label
 var _built: bool = false
+var _pending_count: int = -1
 
 
 func setup(card: CardData) -> void:
@@ -45,24 +46,22 @@ func _on_gui_input(event: InputEvent) -> void:
 			accept_event()
 
 
-## Бейдж "×N" в углу карты для панели Архива (сколько таких в Архиве).
+## Количество "×N" в ПРАВОМ ВЕРХНЕМ УГЛУ карты (для панели Архива).
+## Метка живёт в верхней строке карты рядом с типом, поэтому угол
+## гарантирован раскладкой, а не наложением поверх PanelContainer.
 func set_count_badge(count: int) -> void:
+	_pending_count = count
+	_apply_count_badge()
+
+
+func _apply_count_badge() -> void:
 	if _count_label == null:
-		_count_label = Label.new()
-		_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		_count_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-		_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_count_label.z_index = 5
-		_count_label.add_theme_font_size_override("font_size", 15)
-		_count_label.add_theme_color_override("font_color", Color(1, 0.9, 0.55))
-		var badge_style := StyleBoxFlat.new()
-		badge_style.bg_color = Color(0, 0, 0, 0.45)
-		badge_style.set_corner_radius_all(8)
-		badge_style.content_margin_right = 7
-		badge_style.content_margin_top = 3
-		_count_label.add_theme_stylebox_override("normal", badge_style)
-		add_child(_count_label)
-	_count_label.text = "×%d " % count
+		return
+	if _pending_count < 0:
+		_count_label.visible = false
+		return
+	_count_label.visible = true
+	_count_label.text = "×%d" % _pending_count
 
 
 func _build() -> void:
@@ -93,6 +92,34 @@ func _build() -> void:
 	vbox.add_theme_constant_override("separation", 4)
 	add_child(vbox)
 
+	# Верхняя строка: тип слева, количество ×N — в правом углу.
+	var top_row := HBoxContainer.new()
+	top_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top_row.add_theme_constant_override("separation", 4)
+	vbox.add_child(top_row)
+
+	var type_label := Label.new()
+	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_label.text = CardData.CardType.keys()[card_data.card_type]
+	type_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	type_label.add_theme_font_size_override("font_size", 9)
+	type_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.65))
+	top_row.add_child(type_label)
+
+	_count_label = Label.new()
+	_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_count_label.add_theme_font_size_override("font_size", 15)
+	_count_label.add_theme_color_override("font_color", Color(1, 0.9, 0.55))
+	var badge_style := StyleBoxFlat.new()
+	badge_style.bg_color = Color(0, 0, 0, 0.45)
+	badge_style.set_corner_radius_all(6)
+	badge_style.content_margin_left = 5
+	badge_style.content_margin_right = 5
+	_count_label.add_theme_stylebox_override("normal", badge_style)
+	top_row.add_child(_count_label)
+	_apply_count_badge()
+
 	var title_label := Label.new()
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title_label.text = card_data.title
@@ -101,14 +128,6 @@ func _build() -> void:
 	title_label.add_theme_font_size_override("font_size", 13)
 	title_label.add_theme_color_override("font_color", Color(1, 0.97, 0.88))
 	vbox.add_child(title_label)
-
-	var type_label := Label.new()
-	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	type_label.text = CardData.CardType.keys()[card_data.card_type]
-	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_label.add_theme_font_size_override("font_size", 9)
-	type_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.65))
-	vbox.add_child(type_label)
 
 	var spacer := Control.new()
 	# Разделитель НЕ должен перехватывать клики: иначе нижняя

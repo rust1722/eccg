@@ -3,11 +3,12 @@ extends Node
 ##
 ## Утверждённая схема D (DESIGN.md §6.2): комнаты живут внутри постоянной
 ## оболочки Main.tscn, а бой позже будет отдельным экраном с загрузкой.
-## Этот менеджер знает, какая комната открыта, и выполняет переход:
-##   1) веер старой комнаты уезжает вниз (HandUI),
-##   2) сцена комнаты меняется в слоте оболочки,
-##   3) веер новой комнаты вылезает снизу.
-## Игрок ходит сюда только через указатель с вороной (SignpostNav).
+## При переходе меняется ТОЛЬКО сцена комнаты в слоте оболочки:
+## вся нижняя панель (профиль, веер, колода, указатель) всегда одна
+## и та же и никуда не уезжает — веер у игрока один на все комнаты
+## (решение 2026-10-25, DESIGN.md §6.5).
+## Веер показывается один раз при старте таверны (show_hand).
+## Игрок ходит сюда через указатель с вороной (SignpostNav).
 
 signal room_changed(previous_room_id: String, room_id: String)
 signal room_transition_started(previous_room_id: String, room_id: String)
@@ -52,7 +53,9 @@ func _ready() -> void:
 	print("[RoomManager] ready")
 
 
-## Оболочка Main при старте отдаёт сюда свой слот для комнат и веер карт.
+## Оболочка Main при старте отдаёт сюда свой слот для комнат и веер.
+## Веер нужен только чтобы один раз показать его при старте и чтобы
+## не менять сцену посреди полёта карты веер <-> Архив.
 func register_shell(room_slot: Control, hand_ui: HandUI) -> void:
 	_room_slot = room_slot
 	_hand_ui = hand_ui
@@ -100,11 +103,8 @@ func go_to_room(room_id: String) -> void:
 		while _hand_ui.is_animating():
 			await get_tree().process_frame
 
-	# 1) Старый веер уезжает вниз. У самой первой комнаты веера ещё нет.
-	if _hand_ui != null and from_room_id != "":
-		await _hand_ui.animate_hide()
-
-	# 2) Меняем сцену комнаты в слоте оболочки.
+	# Меняем только сцену комнаты. Нижняя панель и веер не трогаем:
+	# они одни и те же во всех комнатах (решение 2026-10-25).
 	if _current_room_node != null:
 		_room_slot.remove_child(_current_room_node)
 		_current_room_node.queue_free()
@@ -120,9 +120,10 @@ func go_to_room(room_id: String) -> void:
 	previous_room_id = from_room_id
 	current_room_id = room_id
 
-	# 3) Веер новой комнаты вылезает снизу (DESIGN.md §6.5.1).
-	if _hand_ui != null:
-		await _hand_ui.show_room_hand(room_id)
+	# Один-единственный раз, при самом первом входе в таверну,
+	# веер вылезает снизу. Дальше он просто всегда на месте.
+	if _hand_ui != null and from_room_id == "":
+		await _hand_ui.show_hand()
 
 	_transition_busy = false
 	room_changed.emit(from_room_id, room_id)

@@ -2,10 +2,9 @@ class_name ArchiveOverlay
 extends Control
 ## Панель Архива на фоне комнаты, НАД веером карт (не на весь экран).
 ##
-## Руки внутри панели нет: рука игрока — это веер внизу, он остаётся
-## видимым и кликабельным, пока Архив открыт.
-##   - Клик по карте в Архиве -> карта "улетает" вниз, в веер текущей
-##     комнаты (анимацию делает HandUI, панель только сообщает о клике
+## Веер у игрока один на все комнаты, поэтому панель одинаковая везде.
+##   - Клик по карте в Архиве -> карта "улетает" вниз, в общий веер
+##     (анимацию делает HandUI, панель только сообщает о клике
 ##     сигналом archive_card_chosen и показывает, откуда лететь).
 ##   - Клик по карте в веере -> карта улетает сюда, в Архив
 ##     (это делает сам веер, когда включён его archive_mode).
@@ -14,8 +13,6 @@ extends Control
 
 signal closed
 signal archive_card_chosen(card: CardData, source_global_position: Vector2)
-
-var current_room_id: String = ""
 
 var _panel: PanelContainer
 var _title_label: Label
@@ -30,16 +27,15 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_ui()
 	InventoryManager.archive_changed.connect(_on_inventory_changed)
-	InventoryManager.room_hand_changed.connect(_on_room_hand_changed)
+	InventoryManager.hand_changed.connect(_on_hand_changed)
 
 
-func open_for_room(room_id: String) -> void:
-	current_room_id = room_id
+func open_archive() -> void:
 	visible = true
 	_status_label.text = "Клик по карте здесь — она улетит в веер. " \
 		+ "Клик по карте в веере — улетит сюда."
 	_refresh()
-	print("[Archive] opened over room: %s" % RoomManager.get_room_title(room_id))
+	print("[Archive] opened")
 
 
 func close_overlay() -> void:
@@ -67,20 +63,20 @@ func _on_inventory_changed() -> void:
 		_refresh.call_deferred()
 
 
-func _on_room_hand_changed(_room_id: String) -> void:
+func _on_hand_changed() -> void:
 	if visible:
 		_refresh.call_deferred()
 
 
 func _on_archive_card_clicked(card: CardData, view: CardView) -> void:
-	var hand := InventoryManager.get_room_hand(current_room_id)
+	var hand := InventoryManager.get_hand()
 	if hand.size() >= InventoryManager.HAND_LIMIT:
 		_status_label.text = (
 			"Веер полон (%d/%d). Кликните лишнюю карту в веере — она улетит в Архив."
 			% [hand.size(), InventoryManager.HAND_LIMIT]
 		)
 		return
-	_status_label.text = "В веер (%s): %s" % [RoomManager.get_room_title(current_room_id), card.title]
+	_status_label.text = "В веер: %s" % card.title
 	archive_card_chosen.emit(card, view.global_position)
 
 
@@ -89,7 +85,7 @@ func _refresh() -> void:
 		return
 
 	_title_label.text = "Архив"
-	var hand := InventoryManager.get_room_hand(current_room_id)
+	var hand := InventoryManager.get_hand()
 	var kinds_in_archive := 0
 	var total_in_archive := 0
 	for card in InventoryManager.get_known_cards():
@@ -97,9 +93,8 @@ func _refresh() -> void:
 		if count > 0:
 			kinds_in_archive += 1
 			total_in_archive += count
-	_counts_label.text = "Комната: %s · Веер: %d/%d · В Архиве: %d карт (%d видов)" % [
-		RoomManager.get_room_title(current_room_id), hand.size(),
-		InventoryManager.HAND_LIMIT, total_in_archive, kinds_in_archive
+	_counts_label.text = "Веер: %d/%d · В Архиве: %d карт (%d видов)" % [
+		hand.size(), InventoryManager.HAND_LIMIT, total_in_archive, kinds_in_archive
 	]
 
 	_clear_children(_archive_grid)
