@@ -9,7 +9,7 @@ extends Control
 ## Указатель — часть постоянной нижней полосы оболочки и накладывается
 ## на любую комнату; сами переходы выполняет RoomManager.go_to_room().
 
-const LEFT_COLUMN: Array[String] = ["bar", "garden", "shop", "cabinet", "archive"]
+const LEFT_COLUMN: Array[String] = ["bar", "garden", "shop", "cabinet", "barracks"]
 const RIGHT_COLUMN: Array[String] = ["kitchen", "forge", "alchemy", "library"]
 const PLANK_SIZE := Vector2(112, 36)
 

@@ -23,7 +23,7 @@ const ROOM_TITLES: Dictionary = {
 	"library": "Библиотека",
 	"shop": "Лавка",
 	"cabinet": "Кабинет",
-	"archive": "Архив",
+	"barracks": "Казармы",
 }
 
 ## Комнаты, у которых уже есть сцена. С этапа 3 сцены есть у всех
@@ -37,7 +37,7 @@ const ROOM_SCENES: Dictionary = {
 	"library": "res://scenes/rooms/LibraryScene.tscn",
 	"shop": "res://scenes/rooms/ShopScene.tscn",
 	"cabinet": "res://scenes/rooms/CabinetScene.tscn",
-	"archive": "res://scenes/rooms/ArchiveScene.tscn",
+	"barracks": "res://scenes/rooms/BarracksScene.tscn",
 }
 
 var current_room_id: String = ""

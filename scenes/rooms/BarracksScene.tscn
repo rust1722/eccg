@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooms/PlaceholderRoom.gd" id="1"]
+
+[node name="BarracksScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+room_id = "barracks"
+room_title = "Казармы"
+room_subtitle = "Здесь боевые существа ждут выхода в бой, а игрок собирает колоды для миссий. Сетка существ, фильтры и панели колод появятся позже."
+center_object_text = "СБОР ОТРЯДА\n\n(здесь будут существа и боевые колоды)"
+background_color = Color(0.08, 0.08, 0.11, 1)
