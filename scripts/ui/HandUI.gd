@@ -104,7 +104,7 @@ func _make_card_view(card: CardData) -> CardView:
 	return view
 
 
-## Ценник «Прод. N» в углу карт веера виден только в Лавке:
+## Ценник (просто цифра) в углу карт веера виден только в Лавке:
 ## там игрок продаёт карты из веера торговцу (DESIGN.md §4.4).
 func _fan_price_display() -> CardView.PriceDisplay:
 	if RoomManager.current_room_id == "shop":
@@ -136,15 +136,19 @@ func _layout_target(index: int, total: int, view_size: Vector2) -> Vector2:
 	if total > 1:
 		var usable_width := minf(FAN_WIDTH, size.x - 16.0)
 		spacing = minf(spacing, (usable_width - CARD_SIZE.x) / float(total - 1))
+	# Все карты стоят на ОДНОЙ высоте. Раньше боковые садились ниже
+	# «дугой» (до +7 px за шаг) и у дальних карт низ уезжал за край
+	# экрана — они выглядели короткими. Веерность теперь даёт только
+	# лёгкий поворот карт, без спуска.
 	return Vector2(
 		(size.x - view_size.x) * 0.5 + offset_from_center * spacing,
-		SETTLED_Y + absf(offset_from_center) * 7.0
+		SETTLED_Y
 	)
 
 
 func _layout_rotation(index: int, total: int) -> float:
 	var offset_from_center := float(index) - float(total - 1) * 0.5
-	return offset_from_center * 5.0
+	return offset_from_center * 3.0
 
 
 func _global_to_local(global_point: Vector2) -> Vector2:

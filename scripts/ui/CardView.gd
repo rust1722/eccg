@@ -14,7 +14,7 @@ signal card_clicked(card_data: CardData)
 enum PriceDisplay {
 	NONE, ## Цены не показывать (обычный вид карты)
 	BUY, ## «Куп. N» — полка Лавки
-	SELL, ## «Прод. N» — веер игрока, пока он в Лавке
+	SELL, ## Просто цифра цены продажи — веер игрока, пока он в Лавке
 }
 
 const TYPE_COLORS: Dictionary = {
@@ -120,7 +120,9 @@ func _apply_price_display() -> void:
 			_price_label.text = "Куп. %d" % card_data.buy_price
 			_price_label.visible = true
 		PriceDisplay.SELL:
-			_price_label.text = "Прод. %d" % card_data.sell_price
+			# Без подписи: ценник есть только в Лавке, игрок и так
+			# понимает, что цифра — цена продажи.
+			_price_label.text = "%d" % card_data.sell_price
 			_price_label.visible = true
 		_:
 			_price_label.visible = false
