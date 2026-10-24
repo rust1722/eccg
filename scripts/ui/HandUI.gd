@@ -9,7 +9,7 @@ extends Control
 ## руку комнаты из InventoryManager.room_hands.
 
 const CARD_SIZE := Vector2(104, 136)
-const FAN_WIDTH: float = 620.0
+const FAN_WIDTH: float = 500.0
 const SETTLED_Y: float = 84.0
 const HIDDEN_OFFSET_Y: float = 210.0
 
@@ -46,7 +46,7 @@ func show_room_hand(room_id: String) -> void:
 		view.size = view_size
 		view.pivot_offset = view_size * 0.5
 		var offset_from_center := float(i) - float(count - 1) * 0.5
-		var spacing := 62.0
+		var spacing := 96.0
 		if count > 1:
 			spacing = minf(spacing, (FAN_WIDTH - CARD_SIZE.x) / float(count - 1))
 		var target := Vector2(

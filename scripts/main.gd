@@ -30,6 +30,12 @@ func _ready() -> void:
 ## Стартовый набор: карты в Архив, а из него — по рукам комнат (A+).
 ## Запускается один раз на старте игры; сохранения появятся позже.
 func _seed_test_cards() -> void:
+	# Защита от повторного посева, если оболочку перезапустят в том же
+	# процессе: иначе в руки комнат лягут дубли карт.
+	if InventoryManager.get_archive_count("seed_sunflower") > 0:
+		print("[Stage2] seed skipped: archive already has cards")
+		return
+
 	var start_counts: Dictionary = {
 		"seed_sunflower": 3,
 		"water": 5,
