@@ -1,14 +1,9 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/rooms/PlaceholderRoom.gd" id="1_placeholder"]
+[ext_resource type="Script" path="res://scripts/rooms/GardenRoom.gd" id="1"]
 
 [node name="GardenScene" type="Control"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-script = ExtResource("1_placeholder")
-room_id = "garden"
-room_title = "Сад"
-room_subtitle = "Горшки, семена и короткие таймеры созревания. Растения растут сами, пока вы заняты другими комнатами."
-center_object_text = "СТЕЛЛАЖ С ГОРШКАМИ\n\n(здесь будут растения и таймеры)"
-background_color = Color(0.05, 0.10, 0.09, 1)
+script = ExtResource("1")

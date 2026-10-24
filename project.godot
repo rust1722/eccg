@@ -25,6 +25,7 @@ InventoryManager="*res://scripts/autoload/InventoryManager.gd"
 GameStateManager="*res://scripts/autoload/GameStateManager.gd"
 PlayerManager="*res://scripts/autoload/PlayerManager.gd"
 RoomManager="*res://scripts/autoload/RoomManager.gd"
+GardenManager="*res://scripts/autoload/GardenManager.gd"
 
 [display]
 

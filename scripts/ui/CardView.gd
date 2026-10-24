@@ -25,6 +25,7 @@ var card_data: CardData
 var _count_label: Label
 var _built: bool = false
 var _pending_count: int = -1
+var _selected: bool = false
 
 
 func setup(card: CardData) -> void:
@@ -62,6 +63,23 @@ func _apply_count_badge() -> void:
 		return
 	_count_label.visible = true
 	_count_label.text = "×%d" % _pending_count
+
+
+## Подсветка выбранной карты (клик в веере вне Архива, этап Сада):
+## золотая толстая рамка вместо обычной.
+func set_selected(value: bool) -> void:
+	_selected = value
+	if not _built:
+		return
+	var style := get_theme_stylebox("panel") as StyleBoxFlat
+	if style == null:
+		return
+	if _selected:
+		style.set_border_width_all(4)
+		style.border_color = Color(1.0, 0.85, 0.35)
+	else:
+		style.set_border_width_all(2)
+		style.border_color = Color(0.85, 0.72, 0.45)
 
 
 func _build() -> void:

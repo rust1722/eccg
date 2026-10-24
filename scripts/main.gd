@@ -15,6 +15,7 @@ var test_cards: Array[CardData] = [
 	preload("res://resources/cards/test_set/card_soup.tres"),
 	preload("res://resources/cards/test_set/card_potion_health.tres"),
 	preload("res://resources/cards/test_set/card_quest_tower.tres"),
+	preload("res://resources/cards/test_set/card_sunflower.tres"),
 ]
 
 @onready var _room_slot: Control = $RoomSlot
@@ -69,10 +70,14 @@ func _seed_test_cards() -> void:
 		"soup": 3,
 		"potion_health": 3,
 		"quest_tower": 1,
+		"sunflower": 0,
 	}
 	var by_id: Dictionary = {}
 	for card in test_cards:
 		by_id[card.id] = card
+		# Реестр знает и карты с нулём на старте (Подсолнух: его ещё
+		# предстоит вырастить, в Архиве он будет виден как ×0).
+		InventoryManager.register_card(card)
 		InventoryManager.add_to_archive(card, int(start_counts.get(card.id, 1)))
 
 	# Один общий стартовый веер на всю таверну: семена и вода пригодятся

@@ -52,6 +52,7 @@ func _ready() -> void:
 	crow_panel.add_child(_crow_label)
 
 	RoomManager.room_changed.connect(_on_room_changed)
+	GardenManager.garden_changed.connect(_refresh)
 	_refresh()
 
 
@@ -105,6 +106,9 @@ func _refresh() -> void:
 		button.modulate = Color(1.2, 1.08, 0.72) if is_current else Color.WHITE
 		var prefix := "> " if is_current else ""
 		var suffix := "" if implemented else " · скоро"
+		# Восклицательный знак: в саду что-то созрело, из любой комнаты видно.
+		if room_id == "garden" and GardenManager.has_ready_plants():
+			suffix += " !"
 		button.text = prefix + RoomManager.get_room_title(room_id) + suffix
 	if RoomManager.current_room_id == "":
 		_crow_label.text = "ВОРОНА"

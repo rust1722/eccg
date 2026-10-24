@@ -11,6 +11,13 @@ extends Control
 ##     клик по карте в Архиве — карта прилетает в веер.
 ## Какие карты показать, HandUI не придумывает сам: это общий веер
 ## из InventoryManager.current_hand.
+##
+## В обычном режиме (Архив закрыт) клик по карте ВЫБИРАЕТ её
+## (золотая рамка, сигнал selection_changed) — комната, например Сад,
+## применяет выбранную карту к своему объекту. Этот же веер слушаем
+## снаружи через группу "hand_ui".
+
+signal selection_changed(card)
 
 const CARD_SIZE := Vector2(104, 136)
 const FAN_WIDTH: float = 548.0
@@ -26,6 +33,14 @@ var archive_target_global_position: Vector2 = Vector2.ZERO
 
 var _views: Array[Control] = []
 var _animating: bool = false
+var _selected_card: CardData
+var _selected_view: CardView
+
+
+func _ready() -> void:
+	add_to_group("hand_ui")
+	InventoryManager.hand_changed.connect(_on_hand_changed)
+	RoomManager.room_changed.connect(_on_room_changed)
 
 
 func is_animating() -> bool:
@@ -34,6 +49,58 @@ func is_animating() -> bool:
 
 func set_archive_mode(enabled: bool) -> void:
 	archive_mode = enabled
+	if enabled:
+		clear_selection()
+
+
+func get_selected_card() -> CardData:
+	return _selected_card
+
+
+func clear_selection() -> void:
+	if _selected_view != null and is_instance_valid(_selected_view):
+		_selected_view.set_selected(false)
+	_selected_card = null
+	_selected_view = null
+	selection_changed.emit(null)
+
+
+func _on_room_changed(_from_room_id: String, _to_room_id: String) -> void:
+	clear_selection()
+
+
+## Веер поменялся снаружи (Сад забрал семя, урожай упал в веер и т.д.).
+## Во время собственных анимаций Архива не мешаем: там виды уже верные.
+func _on_hand_changed() -> void:
+	if _animating:
+		return
+	_refresh_instant()
+
+
+## Пересобрать веер на месте, без выезда снизу (для внешних изменений).
+func _refresh_instant() -> void:
+	_selected_card = null
+	_selected_view = null
+	_clear_views()
+
+	var cards := InventoryManager.get_hand()
+	if cards.is_empty():
+		_views.append(_make_empty_placeholder())
+	else:
+		for card in cards:
+			_views.append(_make_card_view(card))
+
+	var count := _views.size()
+	for i in count:
+		var view := _views[i]
+		add_child(view)
+		var view_size: Vector2 = view.get_meta("fan_size", CARD_SIZE)
+		view.size = view_size
+		view.pivot_offset = view_size * 0.5
+		view.position = _layout_target(i, count, view_size)
+		view.rotation_degrees = _layout_rotation(i, count)
+		view.modulate.a = 1.0
+		view.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
 func _make_card_view(card: CardData) -> CardView:
@@ -44,9 +111,20 @@ func _make_card_view(card: CardData) -> CardView:
 
 
 func _on_card_view_clicked(_card: CardData, view: CardView) -> void:
-	if not archive_mode or _animating:
+	if _animating:
 		return
-	animate_card_to_archive(view)
+	if archive_mode:
+		animate_card_to_archive(view)
+		return
+	# Обычный режим: клик выбирает карту (второй клик по ней же — снять).
+	if _selected_view == view:
+		clear_selection()
+		return
+	clear_selection()
+	_selected_card = view.card_data
+	_selected_view = view
+	view.set_selected(true)
+	selection_changed.emit(_selected_card)
 
 
 ## Раскладка веера: чем больше карт, тем сильнее они сжимаются

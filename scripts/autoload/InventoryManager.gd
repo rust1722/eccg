@@ -102,6 +102,17 @@ func add_loot_card(card: CardData) -> String:
 	return "archive"
 
 
+## Убрать карту из веера, НЕ возвращая в Архив (посадка, крафт,
+## использование). false = такой карты в веере нет.
+func remove_card_from_hand(card: CardData) -> bool:
+	var index := current_hand.find(card)
+	if index == -1:
+		return false
+	current_hand.remove_at(index)
+	hand_changed.emit()
+	return true
+
+
 ## Вернуть одну карту из веера обратно в Архив.
 func move_hand_card_to_archive(card: CardData) -> bool:
 	var index := current_hand.find(card)
