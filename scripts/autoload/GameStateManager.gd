@@ -2,7 +2,7 @@ extends Node
 ## GameStateManager (Autoload) — в каком режиме сейчас игра.
 ##
 ## Режимы из DESIGN.md §3. Комнаты внутри таверны здесь не различаются:
-## какая именно комната открыта — забота будущего RoomManager (этап 2).
+## какая именно комната открыта — забота RoomManager.
 
 signal mode_changed(previous_mode: Mode, new_mode: Mode)
 
