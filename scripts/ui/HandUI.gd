@@ -53,9 +53,9 @@ func set_archive_mode(enabled: bool) -> void:
 
 
 func _on_room_changed(_from_room_id: String, _to_room_id: String) -> void:
-	# Нижняя панель при смене комнат никак не меняется; здесь делать нечего,
-	# подключение оставлено на будущее (бой и т.п.).
-	pass
+	# Веер и панель при смене комнат не меняются, но ценники продажи
+	# в углу карт должны появляться в Лавке и исчезать вне её.
+	_update_fan_price_display()
 
 
 ## Веер поменялся снаружи (Сад забрал семя при сбросе карты, урожай
@@ -99,8 +99,24 @@ func _make_card_view(card: CardData) -> CardView:
 	var view := CardView.new()
 	view.setup(card)
 	view.drag_enabled = not archive_mode
+	view.set_price_display(_fan_price_display())
 	view.card_clicked.connect(_on_card_view_clicked.bind(view))
 	return view
+
+
+## Ценник «Прод. N» в углу карт веера виден только в Лавке:
+## там игрок продаёт карты из веера торговцу (DESIGN.md §4.4).
+func _fan_price_display() -> CardView.PriceDisplay:
+	if RoomManager.current_room_id == "shop":
+		return CardView.PriceDisplay.SELL
+	return CardView.PriceDisplay.NONE
+
+
+func _update_fan_price_display() -> void:
+	var mode := _fan_price_display()
+	for view in _views:
+		if view is CardView:
+			(view as CardView).set_price_display(mode)
 
 
 func _on_card_view_clicked(_card: CardData, view: CardView) -> void:

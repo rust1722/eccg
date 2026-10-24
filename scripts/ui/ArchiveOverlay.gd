@@ -112,6 +112,8 @@ func _make_archive_card(card: CardData) -> CardView:
 	var count := InventoryManager.get_archive_count(card.id)
 	var view := CardView.new()
 	view.setup(card)
+	# В Архиве цен у карт нет и быть не должно: цены — только Лавка.
+	view.set_price_display(CardView.PriceDisplay.NONE)
 	view.set_count_badge(count)
 	if count <= 0:
 		view.modulate = Color(1, 1, 1, 0.4)

@@ -7,6 +7,16 @@ extends PanelContainer
 
 signal card_clicked(card_data: CardData)
 
+## Где этой карте можно показывать цену. Цены — информация Лавки,
+## а не карты вообще (правка автора): в Архиве цен нет никогда,
+## в веере ценник продажи появляется только в комнате Лавки,
+## на полках Лавки позже будет ценник покупки.
+enum PriceDisplay {
+	NONE, ## Цены не показывать (обычный вид карты)
+	BUY, ## «Куп. N» — полка Лавки
+	SELL, ## «Прод. N» — веер игрока, пока он в Лавке
+}
+
 const TYPE_COLORS: Dictionary = {
 	0: Color(0.45, 0.52, 0.38), # CREATURE
 	1: Color(0.45, 0.35, 0.62), # SPELL
@@ -27,6 +37,8 @@ var card_data: CardData
 var drag_enabled: bool = false
 
 var _count_label: Label
+var _price_label: Label
+var _price_display: PriceDisplay = PriceDisplay.NONE
 var _built: bool = false
 var _pending_count: int = -1
 
@@ -92,6 +104,26 @@ func _apply_count_badge() -> void:
 		return
 	_count_label.visible = true
 	_count_label.text = "×%d" % _pending_count
+
+
+## Владелец карты решает, показывать ли ей цену (см. PriceDisplay).
+func set_price_display(mode: PriceDisplay) -> void:
+	_price_display = mode
+	_apply_price_display()
+
+
+func _apply_price_display() -> void:
+	if _price_label == null or card_data == null:
+		return
+	match _price_display:
+		PriceDisplay.BUY:
+			_price_label.text = "Куп. %d" % card_data.buy_price
+			_price_label.visible = true
+		PriceDisplay.SELL:
+			_price_label.text = "Прод. %d" % card_data.sell_price
+			_price_label.visible = true
+		_:
+			_price_label.visible = false
 
 
 ## Подсветка рамки (для наведения перетаскиваемой карты и т.п.).
@@ -181,10 +213,26 @@ func _build() -> void:
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
-	var price_label := Label.new()
-	price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	price_label.text = "Куп. %d · Прод. %d" % [card_data.buy_price, card_data.sell_price]
-	price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	price_label.add_theme_font_size_override("font_size", 9)
-	price_label.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
-	vbox.add_child(price_label)
+	# Нижняя строка: ценник в правом нижнем углу (если владелец разрешил).
+	var bottom_row := HBoxContainer.new()
+	bottom_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(bottom_row)
+
+	var bottom_spacer := Control.new()
+	bottom_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom_row.add_child(bottom_spacer)
+
+	_price_label = Label.new()
+	_price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_price_label.add_theme_font_size_override("font_size", 11)
+	_price_label.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
+	var price_style := StyleBoxFlat.new()
+	price_style.bg_color = Color(0, 0, 0, 0.45)
+	price_style.set_corner_radius_all(6)
+	price_style.content_margin_left = 5
+	price_style.content_margin_right = 5
+	_price_label.add_theme_stylebox_override("normal", price_style)
+	bottom_row.add_child(_price_label)
+	_apply_price_display()
