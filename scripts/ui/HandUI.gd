@@ -73,6 +73,13 @@ func _on_hand_changed() -> void:
 ## Пересобрать веер на месте, без выезда снизу (для внешних изменений).
 func _refresh_instant() -> void:
 	_refresh_queued = false
+	# Отложенный вызов мог долететь посреди анимации веера
+	# (например, полёта карты из Архива): не ломаем её, а
+	# переносим обновление ещё на кадр.
+	if _animating:
+		_refresh_queued = true
+		_refresh_instant.call_deferred()
+		return
 	_clear_views()
 
 	var cards := InventoryManager.get_hand()
@@ -95,6 +102,8 @@ func _refresh_instant() -> void:
 		view.modulate.a = 1.0
 		view.mouse_filter = Control.MOUSE_FILTER_STOP
 	_debug_print_fan_sizes("refresh")
+	# Контрольный замер через кадр: не поменял ли кто размер потом.
+	Callable(self, "_debug_print_fan_sizes").call_deferred("refresh+1f")
 
 
 func _make_card_view(card: CardData) -> CardView:
@@ -170,15 +179,24 @@ func _force_card_size(view: Control) -> void:
 		view.scale = Vector2.ONE
 
 
-## Отладочная строка в Output: реальные размеры карт веера после
-## раскладки. Если карты снова разной высоты — по этой строке
-## будет видно, какие именно и насколько.
+## Отладочная строка в Output: ВСЕ свойства каждой карты веера
+## после раскладки (размер, масштаб, позиция, поворот, видимая
+## рамка). Охота за «короткими» картами: по этой строке видно,
+## какое именно свойство у виновной карты отличается.
 func _debug_print_fan_sizes(context: String) -> void:
 	var parts: PackedStringArray = []
 	for view in _views:
 		if view is CardView:
 			var card_view := view as CardView
-			parts.append("%s %s" % [card_view.card_data.title, str(card_view.size)])
+			var rect := card_view.get_global_rect()
+			parts.append("%s s=%s sc=%s p=(%d,%d) r=%d g=(%d,%d %dx%d)" % [
+				card_view.card_data.title,
+				str(card_view.size), str(card_view.scale),
+				int(card_view.position.x), int(card_view.position.y),
+				int(card_view.rotation_degrees),
+				int(rect.position.x), int(rect.position.y),
+				int(rect.size.x), int(rect.size.y),
+			])
 	if not parts.is_empty():
 		print("[HandUI] fan (%s): %s" % [context, ", ".join(parts)])
 
