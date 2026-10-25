@@ -220,6 +220,15 @@ func _build() -> void:
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title_label.text = card_data.title
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# ВАЖНО: фиксированная минимальная ширина = реальной ширине текста
+	# в карте (104 - отступы 16). Без неё Godot в момент создания
+	# измеряет автоперенос при почти нулевой ширине: заголовок
+	# «раскладывается» по букве на строку, минимальная высота карты
+	# раздувается до 200-400 px, и размер карты зажимается этим
+	# минимумом — карты получались разной высоты по длине названия
+	# (баг «коротких» Воды и Мяса: они-то как раз были нормальные,
+	# а соседи с длинными названиями — раздутые).
+	title_label.custom_minimum_size = Vector2(88, 0)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_font_size_override("font_size", 13)
 	title_label.add_theme_color_override("font_color", Color(1, 0.97, 0.88))
