@@ -87,12 +87,14 @@ func _refresh_instant() -> void:
 		var view := _views[i]
 		add_child(view)
 		var view_size: Vector2 = view.get_meta("fan_size", CARD_SIZE)
+		_force_card_size(view)
 		view.size = view_size
 		view.pivot_offset = view_size * 0.5
 		view.position = _layout_target(i, count, view_size)
 		view.rotation_degrees = _layout_rotation(i, count)
 		view.modulate.a = 1.0
 		view.mouse_filter = Control.MOUSE_FILTER_STOP
+	_debug_print_fan_sizes("refresh")
 
 
 func _make_card_view(card: CardData) -> CardView:
@@ -136,22 +138,41 @@ func _layout_target(index: int, total: int, view_size: Vector2) -> Vector2:
 	if total > 1:
 		var usable_width := minf(FAN_WIDTH, size.x - 16.0)
 		spacing = minf(spacing, (usable_width - CARD_SIZE.x) / float(total - 1))
-	# Все карты стоят на ОДНОЙ высоте и БЕЗ наклона. Наклон веером
-	# пробовали дважды, и оба раза часть карт выглядела короткой:
-	# повёрнутая карта углами торчит выше и ниже соседних, поэтому
-	# прямые карты рядом (или у края экрана) кажутся обрезанными,
-	# хотя размер у всех один — 104x136. Веер теперь — просто
-	# аккуратный ряд с перекрытием, все карты пиксель в пиксель
-	# одной высоты.
+	# Все карты стоят на ОДНОЙ высоте. Веерность даёт лёгкий
+	# поворот карт вокруг центра (см. _layout_rotation), без спуска
+	# «дугой»: от спуска низ боковых карт уезжал за край экрана.
 	return Vector2(
 		(size.x - view_size.x) * 0.5 + offset_from_center * spacing,
 		SETTLED_Y
 	)
 
 
-func _layout_rotation(_index: int, _total: int) -> float:
-	# Наклона нет специально, см. комментарий выше.
-	return 0.0
+func _layout_rotation(index: int, total: int) -> float:
+	var offset_from_center := float(index) - float(total - 1) * 0.5
+	return offset_from_center * 4.0
+
+
+## Жёстко зафиксировать размер карты веера. У всех карт он один —
+## 104x136; если какой-то путь создания карты умудрился его сбить,
+## эта функция вернёт размер на место.
+func _force_card_size(view: Control) -> void:
+	if view is CardView:
+		view.custom_minimum_size = CARD_SIZE
+		view.size = CARD_SIZE
+		view.scale = Vector2.ONE
+
+
+## Отладочная строка в Output: реальные размеры карт веера после
+## раскладки. Если карты снова разной высоты — по этой строке
+## будет видно, какие именно и насколько.
+func _debug_print_fan_sizes(context: String) -> void:
+	var parts: PackedStringArray = []
+	for view in _views:
+		if view is CardView:
+			var card_view := view as CardView
+			parts.append("%s %s" % [card_view.card_data.title, str(card_view.size)])
+	if not parts.is_empty():
+		print("[HandUI] fan (%s): %s" % [context, ", ".join(parts)])
 
 
 func _global_to_local(global_point: Vector2) -> Vector2:
@@ -176,6 +197,7 @@ func show_hand() -> void:
 		var view := _views[i]
 		add_child(view)
 		var view_size: Vector2 = view.get_meta("fan_size", CARD_SIZE)
+		_force_card_size(view)
 		view.size = view_size
 		view.pivot_offset = view_size * 0.5
 		view.position = _layout_target(i, count, view_size) + Vector2(0, HIDDEN_OFFSET_Y)
@@ -198,6 +220,7 @@ func show_hand() -> void:
 	for view in _views:
 		view.mouse_filter = Control.MOUSE_FILTER_STOP
 	_animating = false
+	_debug_print_fan_sizes("show")
 
 
 ## Карта из Архива "прилетает" в веер: появляется в точке панели
@@ -218,6 +241,7 @@ func animate_add_card_from(card: CardData, source_global_position: Vector2) -> v
 	var new_view := _make_card_view(card)
 	add_child(new_view)
 	_views.append(new_view)
+	_force_card_size(new_view)
 	new_view.size = CARD_SIZE
 	new_view.pivot_offset = CARD_SIZE * 0.5
 	new_view.position = _global_to_local(source_global_position)
