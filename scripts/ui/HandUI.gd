@@ -89,7 +89,7 @@ func _refresh_instant() -> void:
 		var view_size: Vector2 = view.get_meta("fan_size", CARD_SIZE)
 		_force_card_size(view)
 		view.size = view_size
-		view.pivot_offset = view_size * 0.5
+		view.pivot_offset = Vector2(view_size.x * 0.5, view_size.y)
 		view.position = _layout_target(i, count, view_size)
 		view.rotation_degrees = _layout_rotation(i, count)
 		view.modulate.a = 1.0
@@ -138,12 +138,20 @@ func _layout_target(index: int, total: int, view_size: Vector2) -> Vector2:
 	if total > 1:
 		var usable_width := minf(FAN_WIDTH, size.x - 16.0)
 		spacing = minf(spacing, (usable_width - CARD_SIZE.x) / float(total - 1))
-	# Все карты стоят на ОДНОЙ высоте. Веерность даёт лёгкий
-	# поворот карт вокруг центра (см. _layout_rotation), без спуска
-	# «дугой»: от спуска низ боковых карт уезжал за край экрана.
+	# Карты вращаются вокруг НИЖНЕГО центра (pivot внизу карты), а не
+	# вокруг геометрического центра. Раньше был центральный pivot:
+	# у наклонной карты углы торчат выше и ниже её прямоугольника,
+	# поэтому прямая карта в середине веера выглядела «короткой»
+	# (верх ниже, низ выше, чем у соседей) при том же размере 104x136.
+	# Теперь нижняя точка каждой карты ставится на ОДНУ линию:
+	# pos.y поднимается на (W/2)*sin(|угол|) — ровно на столько,
+	# на сколько нижний угол наклонной карты уходит вниз.
+	var angle_rad := deg_to_rad(absf(_layout_rotation(index, total)))
+	var baseline_y := SETTLED_Y + view_size.y
+	var pos_y := baseline_y - view_size.x * 0.5 * sin(angle_rad) - view_size.y
 	return Vector2(
 		(size.x - view_size.x) * 0.5 + offset_from_center * spacing,
-		SETTLED_Y
+		pos_y
 	)
 
 
@@ -199,7 +207,7 @@ func show_hand() -> void:
 		var view_size: Vector2 = view.get_meta("fan_size", CARD_SIZE)
 		_force_card_size(view)
 		view.size = view_size
-		view.pivot_offset = view_size * 0.5
+		view.pivot_offset = Vector2(view_size.x * 0.5, view_size.y)
 		view.position = _layout_target(i, count, view_size) + Vector2(0, HIDDEN_OFFSET_Y)
 		view.rotation_degrees = _layout_rotation(i, count)
 		view.modulate.a = 0.0
@@ -243,7 +251,7 @@ func animate_add_card_from(card: CardData, source_global_position: Vector2) -> v
 	_views.append(new_view)
 	_force_card_size(new_view)
 	new_view.size = CARD_SIZE
-	new_view.pivot_offset = CARD_SIZE * 0.5
+	new_view.pivot_offset = Vector2(CARD_SIZE.x * 0.5, CARD_SIZE.y)
 	new_view.position = _global_to_local(source_global_position)
 	new_view.rotation_degrees = -6.0
 	new_view.z_index = 20
