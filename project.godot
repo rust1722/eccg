@@ -26,6 +26,7 @@ GameStateManager="*res://scripts/autoload/GameStateManager.gd"
 PlayerManager="*res://scripts/autoload/PlayerManager.gd"
 RoomManager="*res://scripts/autoload/RoomManager.gd"
 GardenManager="*res://scripts/autoload/GardenManager.gd"
+CraftManager="*res://scripts/autoload/CraftManager.gd"
 
 [display]
 
